@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Find Mentors – MentorMatch{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-0"><i class="bi bi-search text-primary"></i> Find Your Mentor</h3>
+    <p class="text-muted mb-0">Sorted by AI-powered compatibility score</p>
+  </div>
+</div>
+
+{% if not profile_complete %}
+<div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+  <div>
+    <strong>Your profile is incomplete!</strong>
+    To calculate a compatibility score,
+    <a href="{{ url_for('edit_profile') }}" class="alert-link">complete your profile</a>
+    &nbsp;(skills, interests, field of work).
+  </div>
+</div>
+{% endif %}
+
+{% if hidden_count %}
+<div class="alert alert-info d-flex align-items-center gap-2" role="alert">
+  <i class="bi bi-eye-slash fs-5"></i>
+  <div>
+    <strong>{{ hidden_count }} mentor(s)</strong> are hidden because they have not filled in their profile.
+  </div>
+</div>
+{% endif %}
+
+{% if low_score_count %}
+<div class="alert alert-secondary d-flex align-items-center gap-2" role="alert">
+  <i class="bi bi-funnel fs-5"></i>
+  <div>
+    <strong>{{ low_score_count }} mentor(s)</strong> were hidden due to a compatibility score below 50%.
+    Update your skills and interests in your profile to see more mentors.
+  </div>
+</div>
+{% endif %}
+
+{% if mentor_scores %}
+<div class="row g-4">
+  {% for mentor, score, requested in mentor_scores %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card border-0 shadow-sm h-100 mentor-card">
+      <div class="card-body p-4">
+        <!-- Header -->
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="avatar-circle-sm">{{ mentor.name[0].upper() }}</div>
+          <div>
+            <h5 class="mb-0 fw-bold">{{ mentor.name }}</h5>
+            <small class="text-muted">{{ mentor.field or 'General' }}</small>
+          </div>
+          <!-- Match Score Badge -->
+          <div class="ms-auto">
+            <div class="match-score-circle {% if score >= 75 %}high{% elif score >= 50 %}mid{% else %}low{% endif %}">
+              {{ score|int }}%
+            </div>
+          </div>
+        </div>
+
+        {% if mentor.city %}
+        <p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> {{ mentor.city }}</p>
+        {% endif %}
+
+        {% if mentor.bio %}
+        <p class="text-muted small mb-3">{{ mentor.bio[:100] }}{% if mentor.bio|length > 100 %}…{% endif %}</p>
+        {% endif %}
+
+        {% if mentor.skills %}
+        <div class="mb-3">
+          {% for skill in mentor.skills.split(',')[:4] %}
+            <span class="badge bg-success bg-opacity-10 text-success border border-success me-1 mb-1 small">{{ skill.strip() }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Action -->
+        {% if requested %}
+          <button class="btn btn-secondary w-100 btn-sm" disabled>
+            <i class="bi bi-check2 me-1"></i> Request Sent
+          </button>
+        {% else %}
+          <form method="POST" action="{{ url_for('request_match', mentor_id=mentor.id) }}">
+            <button type="submit" class="btn btn-primary w-100 btn-sm">
+              <i class="bi bi-person-plus me-1"></i> Request Match
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+  <i class="bi bi-search display-3 text-muted"></i>
+  <h4 class="mt-3 text-muted">No mentors available yet.</h4>
+  <p class="text-muted">Check back later or <a href="{{ url_for('edit_profile') }}">complete your profile</a> for better matches.</p>
+</div>
+{% endif %}
+{% endblock %}

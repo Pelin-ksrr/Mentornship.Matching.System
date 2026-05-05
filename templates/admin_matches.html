@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}All Matches – Admin{% endblock %}
+{% block content %}
+<h3 class="fw-bold mb-4"><i class="bi bi-diagram-3 text-warning"></i> All Matches</h3>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr><th>#</th><th>Student</th><th>Mentor</th><th>Score</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {% for m in matches %}
+          <tr>
+            <td class="text-muted small">{{ m.id }}</td>
+            <td>
+              <strong>{{ m.student.name }}</strong>
+              <div class="text-muted small">{{ m.student.field or '—' }}</div>
+            </td>
+            <td>
+              <strong>{{ m.mentor.name }}</strong>
+              <div class="text-muted small">{{ m.mentor.field or '—' }}</div>
+            </td>
+            <td>
+              <div class="progress" style="width:80px;height:8px;">
+                <div class="progress-bar bg-{{ 'success' if m.score >= 60 else 'warning' if m.score >= 30 else 'danger' }}"
+                     style="width:{{ m.score }}%"></div>
+              </div>
+              <small class="text-muted">{{ m.score|int }}%</small>
+            </td>
+            <td>
+              <span class="badge bg-{{ 'success' if m.status == 'accepted' else 'warning text-dark' if m.status == 'pending' else 'secondary' }}">
+                {{ m.status.title() }}
+              </span>
+            </td>
+            <td class="text-muted small">{{ m.created_at.strftime('%b %d, %Y') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

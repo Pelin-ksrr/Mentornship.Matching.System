@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Sessions – MentorMatch{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-calendar3 text-primary"></i> Sessions</h3>
+</div>
+
+{% if session_pairs %}
+<div class="row g-4">
+  {% for s, m in session_pairs %}
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h5 class="fw-bold mb-0">{{ s.title }}</h5>
+          <span class="badge bg-{{ 'success' if s.status == 'completed' else 'primary' if s.status == 'scheduled' else 'secondary' }}">
+            {{ s.status.title() }}
+          </span>
+        </div>
+        <div class="text-muted small mb-3">
+          <i class="bi bi-calendar me-1"></i> {{ s.date }}
+          <i class="bi bi-clock ms-3 me-1"></i> {{ s.time }}
+        </div>
+        {% if user.role == 'student' %}
+          <div class="mb-2"><strong>Mentor:</strong> {{ m.mentor.name }}</div>
+        {% else %}
+          <div class="mb-2"><strong>Student:</strong> {{ m.student.name }}</div>
+        {% endif %}
+        {% if s.notes %}
+          <p class="text-muted small border-top pt-2 mt-2">{{ s.notes }}</p>
+        {% endif %}
+        <div class="d-flex gap-2 mt-3">
+          {% if s.status == 'scheduled' %}
+            <a href="{{ url_for('complete_session', session_id=s.id) }}" class="btn btn-sm btn-success">
+              <i class="bi bi-check2-circle me-1"></i> Mark Complete
+            </a>
+          {% endif %}
+          {% if s.status == 'completed' %}
+            <a href="{{ url_for('give_feedback', session_id=s.id) }}" class="btn btn-sm btn-warning">
+              <i class="bi bi-star me-1"></i> Give Feedback
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+  <i class="bi bi-calendar-x display-3 text-muted"></i>
+  <h4 class="mt-3 text-muted">No sessions yet.</h4>
+  {% if user.role == 'student' %}
+    <p class="text-muted">Get matched with a mentor first, then schedule sessions.</p>
+    <a href="{{ url_for('find_mentors') }}" class="btn btn-primary">Find Mentors</a>
+  {% else %}
+    <p class="text-muted">Accept match requests and schedule sessions with your mentees.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

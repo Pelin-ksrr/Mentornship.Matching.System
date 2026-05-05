@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Give Feedback – MentorMatch{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm p-4">
+      <div class="text-center mb-4">
+        <i class="bi bi-star-fill display-4 text-warning"></i>
+        <h4 class="fw-bold mt-2">Rate Your Session</h4>
+        <p class="text-muted">Session: <strong>{{ sess.title }}</strong></p>
+        <p class="text-muted small">How was your experience with <strong>{{ to_user.name }}</strong>?</p>
+      </div>
+      <form method="POST">
+        <!-- Star Rating -->
+        <div class="mb-4 text-center">
+          <label class="form-label fw-semibold d-block">Rating</label>
+          <div class="star-rating d-flex justify-content-center gap-2">
+            {% for i in [1,2,3,4,5] %}
+            <div>
+              <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}"
+                     class="visually-hidden" required />
+              <label for="star{{ i }}" class="star-label fs-2 text-muted" style="cursor:pointer;">
+                <i class="bi bi-star"></i>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="mt-1 text-muted small" id="rating-label"></div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Comment <small class="text-muted fw-normal">(optional)</small></label>
+          <textarea name="comment" class="form-control" rows="4"
+                    placeholder="Share what went well, what could improve…"></textarea>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-warning px-4 fw-bold">
+            <i class="bi bi-send me-1"></i> Submit Feedback
+          </button>
+          <a href="{{ url_for('sessions_list') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+document.querySelectorAll('.star-label').forEach((label, idx) => {
+  label.addEventListener('mouseover', () => highlight(idx + 1));
+  label.addEventListener('mouseout', () => highlight(getSelected()));
+  label.addEventListener('click', () => {
+    document.getElementById('rating-label').textContent = labels[idx + 1];
+  });
+});
+
+function getSelected() {
+  const checked = document.querySelector('input[name="rating"]:checked');
+  return checked ? parseInt(checked.value) : 0;
+}
+
+function highlight(n) {
+  document.querySelectorAll('.star-label i').forEach((icon, i) => {
+    icon.className = i < n ? 'bi bi-star-fill text-warning' : 'bi bi-star text-muted';
+  });
+}
+
+document.querySelectorAll('input[name="rating"]').forEach(inp => {
+  inp.addEventListener('change', () => highlight(parseInt(inp.value)));
+});
+</script>
+{% endblock %}

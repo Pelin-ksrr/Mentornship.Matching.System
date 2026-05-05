@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}View User – Admin{% endblock %}
+{% block content %}
+<a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary btn-sm mb-4">
+  <i class="bi bi-arrow-left"></i> Back to Users
+</a>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm text-center p-4">
+      <div class="avatar-circle mx-auto mb-3">{{ viewed.name[0].upper() }}</div>
+      <h4 class="fw-bold mb-1">{{ viewed.name }}</h4>
+      <span class="badge bg-{{ 'primary' if viewed.role == 'student' else 'success' }} mb-2">{{ viewed.role.title() }}</span>
+      <p class="text-muted small mb-1">{{ viewed.email }}</p>
+      {% if viewed.city %}<p class="text-muted small mb-1"><i class="bi bi-geo-alt"></i> {{ viewed.city }}</p>{% endif %}
+      {% if avg %}
+        <div class="my-2">
+          {% for i in range(avg|int) %}<i class="bi bi-star-fill text-warning small"></i>{% endfor %}
+          <span class="ms-1 small text-muted">{{ avg }} avg</span>
+        </div>
+      {% endif %}
+      <div class="mt-3">
+        <span class="badge bg-{{ 'success' if viewed.is_active else 'secondary' }} fs-6">
+          {{ 'Active' if viewed.is_active else 'Inactive' }}
+        </span>
+      </div>
+      <a href="{{ url_for('toggle_user', user_id=viewed.id) }}"
+         class="btn btn-sm btn-outline-{{ 'danger' if viewed.is_active else 'success' }} mt-3"
+         onclick="return confirm('{{ 'Deactivate' if viewed.is_active else 'Activate' }} this user?')">
+        {{ 'Deactivate' if viewed.is_active else 'Activate' }} Account
+      </a>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <!-- Bio & Details -->
+    <div class="card border-0 shadow-sm p-4 mb-3">
+      <h5 class="fw-bold mb-3">Profile Details</h5>
+      <p>{{ viewed.bio or '<span class="text-muted">No bio.</span>' | safe }}</p>
+      {% if viewed.field %}<p><strong>Field:</strong> {{ viewed.field }}</p>{% endif %}
+      {% if viewed.skills %}<p><strong>Skills:</strong> {{ viewed.skills }}</p>{% endif %}
+      {% if viewed.interests %}<p><strong>Interests:</strong> {{ viewed.interests }}</p>{% endif %}
+      <p class="text-muted small mb-0">Joined: {{ viewed.created_at.strftime('%B %d, %Y') }}</p>
+    </div>
+
+    <!-- Matches -->
+    <div class="card border-0 shadow-sm p-4 mb-3">
+      <h5 class="fw-bold mb-3">Matches ({{ matches|length }})</h5>
+      {% for m in matches %}
+      <div class="d-flex justify-content-between border-bottom py-2">
+        <div>
+          {% if viewed.role == 'student' %}
+            <strong>Mentor:</strong> {{ m.mentor.name }}
+          {% else %}
+            <strong>Student:</strong> {{ m.student.name }}
+          {% endif %}
+        </div>
+        <span class="badge bg-{{ 'success' if m.status == 'accepted' else 'warning text-dark' if m.status == 'pending' else 'secondary' }}">
+          {{ m.status.title() }}
+        </span>
+      </div>
+      {% else %}
+        <p class="text-muted">No matches.</p>
+      {% endfor %}
+    </div>
+
+    {% if goals %}
+    <div class="card border-0 shadow-sm p-4">
+      <h5 class="fw-bold mb-3">Goals ({{ goals|length }})</h5>
+      {% for g in goals %}
+      <div class="d-flex align-items-center gap-2 py-1 border-bottom">
+        <i class="bi bi-{{ 'check-circle-fill text-success' if g.status == 'completed' else 'circle text-muted' }}"></i>
+        <span class="{{ 'text-decoration-line-through text-muted' if g.status == 'completed' }}">{{ g.goal }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

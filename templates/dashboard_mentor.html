@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}Mentor Dashboard – MentorMatch{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-0">👋 Hello, {{ user.name }}!</h2>
+    <p class="text-muted mb-0">Manage your mentees and sessions</p>
+  </div>
+  <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary">
+    <i class="bi bi-pencil me-1"></i> Edit Profile
+  </a>
+</div>
+
+<!-- STATS ROW -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="fs-2 fw-bold text-warning">{{ pending|length }}</div>
+      <div class="text-muted small"><i class="bi bi-hourglass-split"></i> Pending Requests</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="fs-2 fw-bold text-success">{{ accepted|length }}</div>
+      <div class="text-muted small"><i class="bi bi-people-fill"></i> Active Mentees</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="fs-2 fw-bold text-primary">{{ upcoming|length }}</div>
+      <div class="text-muted small"><i class="bi bi-calendar3"></i> Upcoming Sessions</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('messages') }}" class="card border-0 shadow-sm text-center p-3 h-100 text-decoration-none">
+      <div class="fs-2 fw-bold text-danger">{{ unread }}</div>
+      <div class="text-muted small"><i class="bi bi-chat-dots"></i> Unread Messages</div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Pending Requests -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0 pt-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-bell text-warning"></i> Pending Match Requests</h5>
+      </div>
+      <div class="card-body">
+        {% if pending %}
+          {% for m in pending %}
+          <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+            <div>
+              <strong>{{ m.student.name }}</strong>
+              <div class="text-muted small">Score: <span class="badge bg-primary">{{ m.score|int }}%</span></div>
+              <div class="text-muted small">{{ m.student.interests or 'No interests listed' }}</div>
+            </div>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('respond_match', match_id=m.id, action='accept') }}"
+                 class="btn btn-sm btn-success"><i class="bi bi-check2"></i> Accept</a>
+              <a href="{{ url_for('respond_match', match_id=m.id, action='reject') }}"
+                 class="btn btn-sm btn-outline-danger"><i class="bi bi-x"></i> Decline</a>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted text-center py-3">No pending requests at the moment.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Mentees -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0 pt-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-people-fill text-success"></i> Active Mentees</h5>
+      </div>
+      <div class="card-body">
+        {% if accepted %}
+          {% for m in accepted %}
+          <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+            <div>
+              <strong>{{ m.student.name }}</strong>
+              <div class="text-muted small">{{ m.student.field or 'No field listed' }}</div>
+            </div>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('schedule_session', match_id=m.id) }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-calendar-plus"></i>
+              </a>
+              <a href="{{ url_for('chat', other_id=m.student_id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-chat"></i>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted text-center py-3">No active mentees yet.</p>
+        {% endif %}
+
+        {% if stopped %}
+          <div class="mt-3 border-top pt-2">
+            <p class="text-muted small fw-bold mb-1"><i class="bi bi-x-circle text-danger me-1"></i>Students Who Stopped</p>
+            {% for m in stopped %}
+            <div class="d-flex align-items-center justify-content-between py-1">
+              <div>
+                <span class="text-muted">{{ m.student.name }}</span>
+                <small class="text-muted ms-1">({{ m.student.field or 'General' }})</small>
+              </div>
+              <span class="badge bg-secondary">Stopped</span>
+            </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Sessions -->
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-week text-primary"></i> Upcoming Sessions</h5>
+        <a href="{{ url_for('sessions_list') }}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body">
+        {% if upcoming %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light"><tr>
+                <th>Title</th><th>Student</th><th>Date</th><th>Time</th><th>Actions</th>
+              </tr></thead>
+              <tbody>
+                {% for s in upcoming %}
+                <tr>
+                  <td>{{ s.title }}</td>
+                  <td>{{ s.match.student.name }}</td>
+                  <td>{{ s.date }}</td>
+                  <td>{{ s.time }}</td>
+                  <td>
+                    <a href="{{ url_for('complete_session', session_id=s.id) }}"
+                       class="btn btn-sm btn-success">Complete</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted text-center py-3">No upcoming sessions.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

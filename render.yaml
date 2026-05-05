@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: mentormatch
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1

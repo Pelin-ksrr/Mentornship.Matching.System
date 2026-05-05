@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}My Profile – MentorMatch{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <!-- Profile Card -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm text-center p-4 h-100">
+      <div class="avatar-circle mx-auto mb-3">
+        {{ user.name[0].upper() }}
+      </div>
+      <h4 class="fw-bold mb-2">{{ user.name }}</h4>
+      <span class="px-3 py-1 mb-2 d-inline-block fw-semibold" style="
+        background:{{ '#eef2ff' if user.role == 'student' else '#f0fdf4' }};
+        color:{{ '#6366f1' if user.role == 'student' else '#16a34a' }};
+        border:1.5px solid {{ '#c7d2fe' if user.role == 'student' else '#bbf7d0' }};
+        border-radius:100px;font-size:0.75rem;letter-spacing:0.04em;">
+        <i class="bi bi-{{ 'mortarboard' if user.role == 'student' else 'person-badge' }} me-1"></i>
+        {{ user.role.title() }}
+      </span>
+      <p class="text-muted small mb-1">{{ user.email }}</p>
+      {% if user.city %}<p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> {{ user.city }}</p>{% endif %}
+      {% if avg_rating %}
+        <div class="my-2">
+          {% for i in range(avg_rating|int) %}<i class="bi bi-star-fill text-warning small"></i>{% endfor %}
+          <span class="ms-1 small text-muted">{{ avg_rating }}</span>
+        </div>
+      {% endif %}
+      <a href="{{ url_for('edit_profile') }}" class="btn btn-sm mt-3 px-4 fw-semibold" style="
+        background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0;
+        border-radius:10px;font-size:0.85rem;">
+        <i class="bi bi-pencil me-1"></i> Edit Profile
+      </a>
+    </div>
+  </div>
+
+  <!-- Details -->
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm p-4 mb-3">
+      <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill text-primary"></i> About Me</h5>
+      <p class="text-muted">{{ user.bio or 'No bio added yet. Edit your profile to add one.' }}</p>
+
+      {% if user.field %}
+      <div class="mb-2">
+        <strong><i class="bi bi-briefcase text-primary"></i> Field:</strong>
+        <span class="ms-2 text-muted">{{ user.field }}</span>
+      </div>
+      {% endif %}
+
+      {% if user.skills %}
+      <div class="mb-2">
+        <strong><i class="bi bi-tools text-success"></i> Skills:</strong>
+        <div class="mt-1">
+          {% for skill in user.skills.split(',') %}
+            <span class="badge bg-success bg-opacity-10 text-success border border-success me-1 mb-1">{{ skill.strip() }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if user.interests %}
+      <div class="mb-2">
+        <strong><i class="bi bi-heart text-danger"></i> Interests:</strong>
+        <div class="mt-1">
+          {% for interest in user.interests.split(',') %}
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger me-1 mb-1">{{ interest.strip() }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Feedback Received -->
+    <div class="card border-0 shadow-sm p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-chat-square-quote text-warning"></i> Feedback Received</h5>
+      {% if feedbacks %}
+        {% for fb in feedbacks %}
+        <div class="border-bottom py-2">
+          <div>
+            {% for i in range(fb.rating) %}<i class="bi bi-star-fill text-warning small"></i>{% endfor %}
+            {% for i in range(5 - fb.rating) %}<i class="bi bi-star text-muted small"></i>{% endfor %}
+            <span class="ms-2 small text-muted">from {{ fb.from_user.name }}</span>
+          </div>
+          {% if fb.comment %}<p class="text-muted small mb-0 mt-1">{{ fb.comment }}</p>{% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No feedback received yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

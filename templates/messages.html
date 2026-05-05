@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Messages – MentorMatch{% endblock %}
+{% block content %}
+<h3 class="fw-bold mb-4"><i class="bi bi-chat-dots text-primary"></i> Messages</h3>
+
+<div class="row g-0 border rounded-3 shadow-sm overflow-hidden" style="min-height: 500px;">
+  <!-- Contact List -->
+  <div class="col-md-3 border-end bg-light">
+    <div class="p-3 border-bottom bg-white">
+      <h6 class="mb-0 fw-bold text-muted">Conversations</h6>
+    </div>
+    {% if contacts %}
+      {% for c in contacts %}
+      <a href="{{ url_for('chat', other_id=c.id) }}"
+         class="d-flex align-items-center gap-2 p-3 border-bottom text-decoration-none
+                {{ 'bg-primary bg-opacity-10' if selected and selected.id == c.id else 'hover-bg' }}">
+        <div class="avatar-circle-xs">{{ c.name[0].upper() }}</div>
+        <div>
+          <div class="fw-semibold text-dark small">{{ c.name }}</div>
+          <div class="text-muted" style="font-size:0.75rem">{{ c.role.title() }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    {% else %}
+      <div class="p-4 text-center text-muted small">
+        No conversations yet.<br/>Match with someone to start chatting!
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Chat Area -->
+  <div class="col-md-9 d-flex flex-column">
+    {% if selected %}
+      <!-- Chat Header -->
+      <div class="p-3 border-bottom bg-white d-flex align-items-center gap-2">
+        <div class="avatar-circle-xs">{{ selected.name[0].upper() }}</div>
+        <div>
+          <strong>{{ selected.name }}</strong>
+          <div class="text-muted small">{{ selected.role.title() }}</div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="flex-grow-1 p-3 overflow-auto" id="chat-box" style="max-height: 400px; background: #f8f9fa;">
+        {% if chat %}
+          {% for msg in chat %}
+          <div class="d-flex mb-2 {{ 'justify-content-end' if msg.sender_id == user.id else 'justify-content-start' }}">
+            <div class="message-bubble {{ 'sent' if msg.sender_id == user.id else 'received' }}">
+              <div>{{ msg.content }}</div>
+              <div class="message-time">{{ msg.created_at.strftime('%H:%M') }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-center text-muted mt-5">Say hello to {{ selected.name }}!</p>
+        {% endif %}
+      </div>
+
+      <!-- Message Input -->
+      <form method="POST" class="p-3 border-top bg-white d-flex gap-2">
+        <input type="text" name="content" class="form-control" placeholder="Type a message…" autocomplete="off" required />
+        <button type="submit" class="btn btn-primary px-3">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </form>
+    {% else %}
+      <div class="flex-grow-1 d-flex align-items-center justify-content-center text-muted">
+        <div class="text-center">
+          <i class="bi bi-chat-square-dots display-3 mb-3"></i>
+          <p>Select a conversation to start messaging</p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  const box = document.getElementById('chat-box');
+  if (box) box.scrollTop = box.scrollHeight;
+</script>
+{% endblock %}

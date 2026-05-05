@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard – MentorMatch{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-0">👋 Hello, {{ user.name }}!</h2>
+    <p class="text-muted mb-0">Here's your learning journey overview</p>
+  </div>
+  <a href="{{ url_for('find_mentors') }}" class="btn btn-primary">
+    <i class="bi bi-search me-1"></i> Find Mentors
+  </a>
+</div>
+
+<!-- STATS ROW -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="fs-2 fw-bold text-primary">{{ matches|length }}</div>
+      <div class="text-muted small"><i class="bi bi-diagram-3"></i> Total Requests</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="fs-2 fw-bold text-success">{{ matches|selectattr('status','eq','accepted')|list|length }}</div>
+      <div class="text-muted small"><i class="bi bi-check-circle"></i> Active Mentors</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="fs-2 fw-bold text-warning">{{ sessions|length }}</div>
+      <div class="text-muted small"><i class="bi bi-calendar3"></i> Upcoming Sessions</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('messages') }}" class="card border-0 shadow-sm text-center p-3 h-100 text-decoration-none">
+      <div class="fs-2 fw-bold text-danger">{{ unread }}</div>
+      <div class="text-muted small"><i class="bi bi-chat-dots"></i> Unread Messages</div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Matches -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-diagram-3 text-primary"></i> My Match Requests</h5>
+        <a href="{{ url_for('find_mentors') }}" class="btn btn-sm btn-outline-primary">+ New</a>
+      </div>
+      <div class="card-body">
+        {% if matches %}
+          {% for m in matches %}
+          <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+            <div>
+              <strong>{{ m.mentor.name }}</strong>
+              <div class="text-muted small">{{ m.mentor.field or 'General' }}</div>
+            </div>
+            <div>
+              {% if m.status == 'accepted' %}
+                <span class="badge bg-success">Accepted</span>
+                <a href="{{ url_for('chat', other_id=m.mentor_id) }}" class="btn btn-sm btn-outline-primary ms-1">
+                  <i class="bi bi-chat"></i>
+                </a>
+                <form method="POST" action="{{ url_for('stop_match', match_id=m.id) }}" class="d-inline ms-1"
+                      onsubmit="return confirm('Are you sure you want to stop working with {{ m.mentor.name }}?')">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Calismayi Durdur">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                </form>
+              {% elif m.status == 'pending' %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% elif m.status == 'stopped' %}
+                <span class="badge bg-secondary">Stopped</span>
+              {% else %}
+                <span class="badge bg-secondary">Declined</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted text-center py-3">No match requests yet. <a href="{{ url_for('find_mentors') }}">Find a mentor!</a></p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Goals -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-check2-square text-success"></i> My Goals</h5>
+        <a href="{{ url_for('progress') }}" class="btn btn-sm btn-outline-success">Manage</a>
+      </div>
+      <div class="card-body">
+        {% if goals %}
+          {% for g in goals[:5] %}
+          <div class="d-flex align-items-center gap-2 py-2 border-bottom">
+            {% if g.status == 'completed' %}
+              <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            {% else %}
+              <i class="bi bi-circle text-muted fs-5"></i>
+            {% endif %}
+            <span class="{{ 'text-decoration-line-through text-muted' if g.status == 'completed' }}">{{ g.goal }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted text-center py-3">No goals yet. <a href="{{ url_for('progress') }}">Add your first goal!</a></p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Sessions -->
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-week text-warning"></i> Upcoming Sessions</h5>
+        <a href="{{ url_for('sessions_list') }}" class="btn btn-sm btn-outline-warning">View All</a>
+      </div>
+      <div class="card-body">
+        {% if sessions %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light"><tr>
+                <th>Title</th><th>Mentor</th><th>Date</th><th>Time</th><th>Status</th>
+              </tr></thead>
+              <tbody>
+                {% for s in sessions %}
+                <tr>
+                  <td>{{ s.title }}</td>
+                  <td>{{ s.match.mentor.name }}</td>
+                  <td>{{ s.date }}</td>
+                  <td>{{ s.time }}</td>
+                  <td><span class="badge bg-{{ 'success' if s.status == 'completed' else 'primary' }}">{{ s.status }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted text-center py-3">No sessions scheduled. Accept a match and schedule one!</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
